@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>스마트 웹 가계부 - 저장/모바일 개선본 · v28_20260826</title>
+    <title>스마트 웹 가계부 - 저장/모바일 개선본 · v29_20260826</title>
     
     <!-- PWA 모바일 설정 -->
     <meta name="theme-color" content="#422d53">
@@ -139,7 +139,6 @@
         .main-summary-table td:first-child { background: #faf9fc; font-weight: 600; width: 38%; color: #555; vertical-align: middle; }
         .main-summary-table td:last-child { font-weight: 800; color: #2b1d3a; text-align: right !important; white-space: nowrap; }
         
-        /* 🔥 전월 비교 전용 강제 줄바꿈 및 스타일 완벽 수정 */
         .trend-up { color: #e53935; font-size: 0.8em; font-weight: bold; display: block; margin-top: 3px; white-space: nowrap; }
         .trend-down { color: #1e88e5; font-size: 0.8em; font-weight: bold; display: block; margin-top: 3px; white-space: nowrap; }
         .trend-same { color: #9e9e9e; font-size: 0.8em; font-weight: bold; display: block; margin-top: 3px; white-space: nowrap; }
@@ -243,7 +242,6 @@
             .table-container { max-width: 100%; max-height: none; overflow-x: hidden; overflow-y: visible; border: none; box-shadow: none; background: transparent; }
             table { min-width: 0 !important; width: 100%; display: block; font-size: 13px; }
             
-            /* 🔥 메인 요약 표 모바일 스타일 수정 (그리드 깨짐 문제 완벽 해결) */
             table.main-summary-table { display: table !important; }
             table.main-summary-table tbody { display: table-row-group !important; }
             table.main-summary-table tr { display: table-row !important; border: none !important; box-shadow: none !important; }
@@ -2125,7 +2123,7 @@ async function loadAllDataFromFirebase() {
     function exportToCSV() {
         saveCurrentMonthStores();
         const csvLines = [];
-        csvLines.push(["Year","Month","Tab","Index","Checked","Date","Amount","Category_or_Payment","Memo_or_CardName","DC","Point","Etc","FoodBudget","SideAmount","SideMemo"].map(csvEscape).join(','));
+        csvLines.push(["Year","Month","Tab","Index","Checked","Date","Amount","Category","Payment","Memo","DC","Point","Etc","FoodBudget","SideAmount","SideMemo"].map(csvEscape).join(','));
 
         for (let y = MIN_YEAR; y <= MAX_YEAR; y++) {
             const stores = getYearData(y);
@@ -2133,39 +2131,39 @@ async function loadAllDataFromFirebase() {
             for (let m = 1; m <= 12; m++) {
                 getSafeList(stores.expenseStore, m).forEach((row, i) => {
                     if (row.amount || row.memo || row.date) {
-                        csvLines.push([y, m, "Expense", i, row.checked, row.date, row.amount, row.category, row.memo, row.dc, row.point, row.etc, 0, "", ""].map(csvEscape).join(','));
+                        csvLines.push([y, m, "Expense", i, row.checked, row.date, row.amount, row.category, row.payment, row.memo, row.dc, row.point, row.etc, 0, "", ""].map(csvEscape).join(','));
                     }
                 });
 
                 const mKey = getMonthKey(y, m); 
                 getSafeList(stores.fixedGeneralStore, mKey).forEach((row, i) => {
                     if (row.amount || row.memo) {
-                        csvLines.push([y, m, "FixedGeneral", i, row.checked, "", row.amount, "", row.memo, row.dc, row.point, row.etc, 0, "", ""].map(csvEscape).join(','));
+                        csvLines.push([y, m, "FixedGeneral", i, row.checked, "", row.amount, "", "", row.memo, row.dc, row.point, row.etc, 0, "", ""].map(csvEscape).join(','));
                     }
                 });
 
                 getSafeList(stores.fixedCardStore, mKey).forEach((row, i) => {
                     if (row.amount || row.memo || row.cardName) {
-                        csvLines.push([y, m, "FixedCard", i, false, "", row.amount, "", `${row.cardName || ''} | ${row.memo}`, row.dc, row.point, row.etc, 0, "", ""].map(csvEscape).join(','));
+                        csvLines.push([y, m, "FixedCard", i, false, "", row.amount, "", "", `${row.cardName || ''} | ${row.memo}`, row.dc, row.point, row.etc, 0, "", ""].map(csvEscape).join(','));
                     }
                 });
 
                 getSafeList(stores.lumpStore, m).forEach((row, i) => {
                     if (row.amount || row.memo || row.date) {
-                        csvLines.push([y, m, "Lump", i, false, row.date, row.amount, row.payment, row.memo, row.dc, row.point, row.etc, 0, "", ""].map(csvEscape).join(','));
+                        csvLines.push([y, m, "Lump", i, false, row.date, row.amount, "", row.payment, row.memo, row.dc, row.point, row.etc, 0, "", ""].map(csvEscape).join(','));
                     }
                 });
 
                 const inc = stores.incomeStore[m] || {};
                 if (inc.amt1 || inc.amt2 || inc.amt3 || inc.foodBudget) {
-                    csvLines.push([y, m, "Income", 0, false, "", inc.amt1, "", "인성월급", 0, "", "", inc.foodBudget, "", ""].map(csvEscape).join(','));
-                    csvLines.push([y, m, "Income", 1, false, "", inc.amt2, "", "혜선월급", 0, "", "", 0, "", ""].map(csvEscape).join(','));
-                    csvLines.push([y, m, "Income", 2, false, "", inc.amt3, "", "부수입", 0, "", "", 0, "", ""].map(csvEscape).join(','));
+                    csvLines.push([y, m, "Income", 0, false, "", inc.amt1, "", "", "인성월급", 0, "", "", inc.foodBudget, "", ""].map(csvEscape).join(','));
+                    csvLines.push([y, m, "Income", 1, false, "", inc.amt2, "", "", "혜선월급", 0, "", "", 0, "", ""].map(csvEscape).join(','));
+                    csvLines.push([y, m, "Income", 2, false, "", inc.amt3, "", "", "부수입", 0, "", "", 0, "", ""].map(csvEscape).join(','));
                 }
 
                 getSafeList(stores.sideIncomeStore, m).forEach((row, i) => {
                     if (row.amount || row.memo) {
-                        csvLines.push([y, m, "SideIncome", i, false, "", "", "", "", 0, "", "", 0, row.amount, row.memo].map(csvEscape).join(','));
+                        csvLines.push([y, m, "SideIncome", i, false, "", "", "", "", "", 0, "", "", 0, row.amount, row.memo].map(csvEscape).join(','));
                     }
                 });
             }
@@ -2213,6 +2211,7 @@ async function loadAllDataFromFirebase() {
         return result;
     }
 
+    /* 🔥 가계부 CSV 파싱 로직 수정 (결제 방법 정상 할당) */
     function parseAndLoadCSV(csvText) {
         const rawLines = csvText.replace(/^\uFEFF/, '').split(/\r?\n/);
         if (rawLines.length <= 1) {
@@ -2234,14 +2233,15 @@ async function loadAllDataFromFirebase() {
             const chk = cols[4] === 'true';
             const dt = cols[5];
             const amt = cols[6];
-            const catPay = cols[7];
-            const memoCard = cols[8];
-            const dc = cols[9];
-            const pt = cols[10] || '';
-            const etc = cols[11] || '';
-            const foodB = cols[12] || '';
-            const sideAmt = cols[13] || '';
-            const sideMemo = cols[14] || '';
+            const cat = cols[7];
+            const pay = cols[8];
+            const memoCard = cols[9];
+            const dc = cols[10] || '0';
+            const pt = cols[11] || '';
+            const etc = cols[12] || '';
+            const foodB = cols[13] || '';
+            const sideAmt = cols[14] || '';
+            const sideMemo = cols[15] || '';
 
             if (isNaN(y) || isNaN(m) || m < 1 || m > 12) continue;
 
@@ -2249,7 +2249,7 @@ async function loadAllDataFromFirebase() {
 
             if (tab === 'Expense') {
                 const list = getSafeList(stores.expenseStore, m);
-                list[idx] = { checked: chk, date: dt, amount: amt, category: catPay, payment: 'none', memo: memoCard, dc: dc, point: pt, etc: etc };
+                list[idx] = { checked: chk, date: dt, amount: amt, category: cat || 'none', payment: pay || 'none', memo: memoCard, dc: dc, point: pt, etc: etc };
             } 
             else if (tab === 'FixedGeneral') {
                 const mKey = getMonthKey(y, m);
@@ -2266,7 +2266,7 @@ async function loadAllDataFromFirebase() {
             }
             else if (tab === 'Lump') {
                 const list = getSafeList(stores.lumpStore, m);
-                list[idx] = { date: dt, amount: amt, payment: catPay, memo: memoCard, dc: dc, point: pt, etc: etc };
+                list[idx] = { date: dt, amount: amt, payment: pay || 'none', memo: memoCard, dc: dc, point: pt, etc: etc };
             }
             else if (tab === 'Income' && stores.incomeStore[m]) {
                 if (idx === 0) { stores.incomeStore[m].amt1 = amt; stores.incomeStore[m].foodBudget = foodB; }
@@ -2383,7 +2383,7 @@ async function loadAllDataFromFirebase() {
 }
 </style>
 
-<div class="app-version-mark" aria-label="앱 버전">v28_20260826</div>
+<div class="app-version-mark" aria-label="앱 버전">v29_20260826</div>
 <button id="mobile-fixed-save-button" type="button" onclick="saveDataToCloud()" aria-label="전체저장">☁️ 전체저장</button>
 </body>
 </html>
