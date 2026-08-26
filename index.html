@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>스마트 웹 가계부 - 저장/모바일 개선본 · v29_20260826</title>
+    <title>스마트 웹 가계부 - 저장/모바일 개선본 · v30_20260826</title>
     
     <!-- PWA 모바일 설정 -->
     <meta name="theme-color" content="#422d53">
@@ -469,7 +469,7 @@ async function loadAllDataFromFirebase() {
     
     <!-- 1. 이달의 지출 탭 -->
     <div id="tab-expense" class="tab-content active">
-        <div style="max-width: 1100px; margin: 0 auto;"><button class="btn-add" onclick="addExpenseRow()">+ 행 추가</button></div>
+        <div style="max-width: 1100px; margin: 0 auto;"><button class="btn-add" onclick="addExpenseRow({}, null, true)">+ 행 추가</button></div>
         <div class="table-container">
             <table>
                 <thead>
@@ -1399,7 +1399,8 @@ async function loadAllDataFromFirebase() {
         updateMobileCompactRows('lump-tbody', 'lump');
     }
 
-    function addExpenseRow(data = {}, storeIndex = null) {
+    /* 🔥 [이달의 지출] 행 추가 시 맨 위에 삽입 (prepend) 되도록 수정 */
+    function addExpenseRow(data = {}, storeIndex = null, prepend = false) {
         const tbody = document.getElementById('expense-tbody');
         const tr = document.createElement('tr');
         const existingIndexes = Array.from(document.querySelectorAll('#expense-tbody tr'))
@@ -1445,7 +1446,13 @@ async function loadAllDataFromFirebase() {
             <td class="col-action"><button class="btn-delete" onclick="deleteRow(this)">✕</button></td>
         `;
         tr.dataset.newestExpenseRow = 'true';
-        tbody.appendChild(tr);
+        
+        if (prepend && tbody.firstChild) {
+            tbody.insertBefore(tr, tbody.firstChild);
+        } else {
+            tbody.appendChild(tr);
+        }
+
         if (data.baseAmount !== undefined) {
             const amtEl = tr.querySelector('.exp-amount');
             if (amtEl) amtEl.dataset.baseAmount = data.baseAmount;
@@ -1487,7 +1494,7 @@ async function loadAllDataFromFirebase() {
         const tbody = document.getElementById('expense-tbody');
         tbody.innerHTML = '';
         const list = getSafeList(curStores().expenseStore, m);
-        list.forEach((data, index) => addExpenseRow(data, index));
+        list.forEach((data, index) => addExpenseRow(data, index, false));
         updateAllMobileCompactRows();
     }
 
@@ -2211,7 +2218,6 @@ async function loadAllDataFromFirebase() {
         return result;
     }
 
-    /* 🔥 가계부 CSV 파싱 로직 수정 (결제 방법 정상 할당) */
     function parseAndLoadCSV(csvText) {
         const rawLines = csvText.replace(/^\uFEFF/, '').split(/\r?\n/);
         if (rawLines.length <= 1) {
@@ -2383,7 +2389,7 @@ async function loadAllDataFromFirebase() {
 }
 </style>
 
-<div class="app-version-mark" aria-label="앱 버전">v29_20260826</div>
+<div class="app-version-mark" aria-label="앱 버전">v30_20260826</div>
 <button id="mobile-fixed-save-button" type="button" onclick="saveDataToCloud()" aria-label="전체저장">☁️ 전체저장</button>
 </body>
 </html>
