@@ -135,14 +135,14 @@
         .main-summary-stats { margin-top: 25px; border-top: 2px solid #f0f0f0; padding-top: 20px; }
         .main-summary-title { font-size: 1rem; font-weight: 800; color: #2b1d3a; margin: 0 0 10px 0; }
         .main-summary-table { width: 100%; min-width: 0 !important; font-size: 13.5px; border-collapse: collapse; }
-        .main-summary-table td { padding: 10px 8px; border: 1px solid #ece8f0; height: auto; text-align: left !important; word-break: break-all;}
+        .main-summary-table td { padding: 10px 8px; border: 1px solid #ece8f0; height: auto; text-align: left !important; }
         .main-summary-table td:first-child { background: #faf9fc; font-weight: 600; width: 38%; color: #555; vertical-align: middle; }
-        .main-summary-table td:last-child { font-weight: 800; color: #2b1d3a; white-space: normal; }
+        .main-summary-table td:last-child { font-weight: 800; color: #2b1d3a; text-align: right !important; white-space: nowrap; }
         
-        /* 🔥 전월 비교 전용 줄바꿈 스타일 수정 */
-        .trend-up { color: #e53935; font-size: 0.8em; font-weight: bold; display: block; margin-top: 2px; }
-        .trend-down { color: #1e88e5; font-size: 0.8em; font-weight: bold; display: block; margin-top: 2px; }
-        .trend-same { color: #9e9e9e; font-size: 0.8em; font-weight: bold; display: block; margin-top: 2px; }
+        /* 🔥 전월 비교 전용 강제 줄바꿈 및 스타일 완벽 수정 */
+        .trend-up { color: #e53935; font-size: 0.8em; font-weight: bold; display: block; margin-top: 3px; white-space: nowrap; }
+        .trend-down { color: #1e88e5; font-size: 0.8em; font-weight: bold; display: block; margin-top: 3px; white-space: nowrap; }
+        .trend-same { color: #9e9e9e; font-size: 0.8em; font-weight: bold; display: block; margin-top: 3px; white-space: nowrap; }
 
         /* --- 가계부 입력 페이지 스타일 --- */
         .input-header-container { display: flex; justify-content: space-between; align-items: center; max-width: 1100px; margin: 0 auto 15px auto; flex-wrap: wrap; gap: 10px; }
@@ -241,12 +241,19 @@
             .tab-btn { min-width: 82px; padding: 11px 6px; font-size: .82rem; flex: 0 0 auto; }
 
             .table-container { max-width: 100%; max-height: none; overflow-x: hidden; overflow-y: visible; border: none; box-shadow: none; background: transparent; }
-            table, table.main-summary-table { min-width: 0 !important; width: 100%; display: block; font-size: 13px; }
+            table { min-width: 0 !important; width: 100%; display: block; font-size: 13px; }
+            
+            /* 🔥 메인 요약 표 모바일 스타일 수정 (그리드 깨짐 문제 완벽 해결) */
+            table.main-summary-table { display: table !important; }
+            table.main-summary-table tbody { display: table-row-group !important; }
+            table.main-summary-table tr { display: table-row !important; border: none !important; box-shadow: none !important; }
+            table.main-summary-table td { display: table-cell !important; border: 1px solid #ece8f0 !important; }
+
             table thead { display: none; }
             table tbody { display: block; width: 100%; }
-            table tr { display: grid; grid-template-columns: 1fr 1fr; gap: 0; margin: 0 0 10px 0; background: #fff; border: 1px solid #ddd; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
-            table td { display: flex; align-items: center; min-width: 0 !important; width: auto !important; height: auto; min-height: 40px; padding: 5px 7px; box-sizing: border-box; text-align: left; border: 0; border-bottom: 1px solid #eee; position: relative; }
-            table td::before { content: ''; flex: 0 0 48px; font-size: 10px; font-weight: 700; color: #777; margin-right: 5px; }
+            table:not(.main-summary-table) tr { display: grid; grid-template-columns: 1fr 1fr; gap: 0; margin: 0 0 10px 0; background: #fff; border: 1px solid #ddd; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
+            table:not(.main-summary-table) td { display: flex; align-items: center; min-width: 0 !important; width: auto !important; height: auto; min-height: 40px; padding: 5px 7px; box-sizing: border-box; text-align: left; border: 0; border-bottom: 1px solid #eee; position: relative; }
+            table:not(.main-summary-table) td::before { content: ''; flex: 0 0 48px; font-size: 10px; font-weight: 700; color: #777; margin-right: 5px; }
             table td > input, table td > select { min-width: 0; flex: 1; font-size: 14px; }
 
             /* 라벨 세팅 */
