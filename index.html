@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>스마트 웹 가계부 - 저장/모바일 개선본 · v27_20260825</title>
+    <title>스마트 웹 가계부 - 저장/모바일 개선본 · v28_20260826</title>
     
     <!-- PWA 모바일 설정 -->
     <meta name="theme-color" content="#422d53">
@@ -136,12 +136,13 @@
         .main-summary-title { font-size: 1rem; font-weight: 800; color: #2b1d3a; margin: 0 0 10px 0; }
         .main-summary-table { width: 100%; min-width: 0 !important; font-size: 13.5px; border-collapse: collapse; }
         .main-summary-table td { padding: 10px 8px; border: 1px solid #ece8f0; height: auto; text-align: left !important; word-break: break-all;}
-        .main-summary-table td:first-child { background: #faf9fc; font-weight: 600; width: 38%; color: #555; }
+        .main-summary-table td:first-child { background: #faf9fc; font-weight: 600; width: 38%; color: #555; vertical-align: middle; }
         .main-summary-table td:last-child { font-weight: 800; color: #2b1d3a; white-space: normal; }
         
-        .trend-up { color: #e53935; font-size: 0.85em; font-weight: bold; margin-left: 6px; }
-        .trend-down { color: #1e88e5; font-size: 0.85em; font-weight: bold; margin-left: 6px; }
-        .trend-same { color: #9e9e9e; font-size: 0.85em; font-weight: bold; margin-left: 6px; }
+        /* 🔥 전월 비교 전용 줄바꿈 스타일 수정 */
+        .trend-up { color: #e53935; font-size: 0.8em; font-weight: bold; display: block; margin-top: 2px; }
+        .trend-down { color: #1e88e5; font-size: 0.8em; font-weight: bold; display: block; margin-top: 2px; }
+        .trend-same { color: #9e9e9e; font-size: 0.8em; font-weight: bold; display: block; margin-top: 2px; }
 
         /* --- 가계부 입력 페이지 스타일 --- */
         .input-header-container { display: flex; justify-content: space-between; align-items: center; max-width: 1100px; margin: 0 auto 15px auto; flex-wrap: wrap; gap: 10px; }
@@ -383,7 +384,7 @@ async function loadAllDataFromFirebase() {
 <div id="main-page" class="page active">
     <div class="main-container">
 
-        <!-- 📲 PWA 설치 안구 배너 -->
+        <!-- 📲 PWA 설치 안내 배너 -->
         <div id="pwa-install-banner" class="pwa-install-container">
             <span class="pwa-install-text">📱 가계부 앱으로 설치하기</span>
             <button class="btn-pwa-install" onclick="triggerPwaInstall()">앱 추가</button>
@@ -1165,6 +1166,7 @@ async function loadAllDataFromFirebase() {
         calculateTotal(); 
     }
 
+    /* 🔥 전월 비교 전용 태그 변환 함수 */
     function getTrendHtml(cur, prev) {
         const diff = cur - prev;
         if (diff > 0) return `<span class="trend-up">(+${diff.toLocaleString()})</span>`;
@@ -2374,7 +2376,7 @@ async function loadAllDataFromFirebase() {
 }
 </style>
 
-<div class="app-version-mark" aria-label="앱 버전">v27_20260825</div>
+<div class="app-version-mark" aria-label="앱 버전">v28_20260826</div>
 <button id="mobile-fixed-save-button" type="button" onclick="saveDataToCloud()" aria-label="전체저장">☁️ 전체저장</button>
 </body>
 </html>
