@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>스마트 웹 가계부 - 저장/모바일 개선본 · v30_20260826</title>
+    <title>스마트 웹 가계부 - 저장/모바일 개선본 · v31_20260830</title>
     
     <!-- PWA 모바일 설정 -->
     <meta name="theme-color" content="#422d53">
@@ -419,7 +419,7 @@ async function loadAllDataFromFirebase() {
         <button class="btn-write" onclick="goToInputPage()">📝 가계부 작성하기</button>
         <div class="active-month-badge">현재 선택: <span id="active-year">2026</span>년 <span id="active-month">?</span>월 가계부</div>
 
-        <!-- 🔥 선택 월 상세 요약 & 전월비교 -->
+        <!-- 🔥 선택 월 상세 요약 & 전월비교 (수정사항 3: 7가지 항목 추가) -->
         <div class="main-summary-stats">
             <div class="main-summary-title" id="main-summary-title">📊 2026년 8월 요약 (전월 비교)</div>
             <table class="main-summary-table">
@@ -434,6 +434,13 @@ async function loadAllDataFromFirebase() {
                     <tr><td>보험</td><td id="mo-insure-total">₩0</td></tr>
                     <tr><td>주유</td><td id="mo-fuel-total">₩0</td></tr>
                     <tr style="background:#e8f5e9;"><td>식비</td><td id="mo-food-total" style="color:#1b5e20;">₩0</td></tr>
+                    <tr><td>쿠팡</td><td id="mo-cat-coupang">₩0</td></tr>
+                    <tr><td>마트</td><td id="mo-cat-mart">₩0</td></tr>
+                    <tr><td>육아</td><td id="mo-cat-childcare">₩0</td></tr>
+                    <tr><td>카페</td><td id="mo-cat-cafe">₩0</td></tr>
+                    <tr><td>병원</td><td id="mo-cat-hospital">₩0</td></tr>
+                    <tr><td>쇼핑</td><td id="mo-cat-shopping">₩0</td></tr>
+                    <tr><td>기타</td><td id="mo-cat-other">₩0</td></tr>
                 </tbody>
             </table>
         </div>
@@ -1179,6 +1186,7 @@ async function loadAllDataFromFirebase() {
         return `<span class="trend-same">(-)</span>`;
     }
 
+    /* 🔥 수정사항 3: 메인 요약에 7가지 항목별 생활비 추가 및 전월대비 증감 연결 */
     function updateMainMonthlyStatsView(yearNum, monthNum) {
         let prevY = yearNum;
         let prevM = monthNum - 1;
@@ -1190,7 +1198,7 @@ async function loadAllDataFromFirebase() {
         const curStats = calculateMonthStats(yearNum, monthNum);
         const prevStats = calculateMonthStats(prevY, prevM);
 
-        document.getElementById('main-summary-title').innerText = `📊 ${yearNum}년 ${monthNum}월 요약 (전월비교)`;
+        document.getElementById('main-summary-title').innerText = `📊 ${yearNum}년 ${monthNum}월 요약 (전월 비교)`;
 
         document.getElementById('mo-inc-total').innerHTML = '₩' + curStats.incTotal.toLocaleString() + getTrendHtml(curStats.incTotal, prevStats.incTotal);
         document.getElementById('mo-fixed-total').innerHTML = '₩' + curStats.fixedTotal.toLocaleString() + getTrendHtml(curStats.fixedTotal, prevStats.fixedTotal);
@@ -1203,6 +1211,15 @@ async function loadAllDataFromFirebase() {
         document.getElementById('mo-insure-total').innerHTML = '₩' + curStats.insuranceTotal.toLocaleString() + getTrendHtml(curStats.insuranceTotal, prevStats.insuranceTotal);
         document.getElementById('mo-fuel-total').innerHTML = '₩' + curStats.fuelTotal.toLocaleString() + getTrendHtml(curStats.fuelTotal, prevStats.fuelTotal);
         document.getElementById('mo-food-total').innerHTML = '₩' + curStats.catMap.food.toLocaleString() + getTrendHtml(curStats.catMap.food, prevStats.catMap.food);
+
+        // 추가된 7가지 항목별 전월 비교
+        document.getElementById('mo-cat-coupang').innerHTML = '₩' + curStats.catMap.coupang.toLocaleString() + getTrendHtml(curStats.catMap.coupang, prevStats.catMap.coupang);
+        document.getElementById('mo-cat-mart').innerHTML = '₩' + curStats.catMap.mart.toLocaleString() + getTrendHtml(curStats.catMap.mart, prevStats.catMap.mart);
+        document.getElementById('mo-cat-childcare').innerHTML = '₩' + curStats.catMap.childcare.toLocaleString() + getTrendHtml(curStats.catMap.childcare, prevStats.catMap.childcare);
+        document.getElementById('mo-cat-cafe').innerHTML = '₩' + curStats.catMap.cafe.toLocaleString() + getTrendHtml(curStats.catMap.cafe, prevStats.catMap.cafe);
+        document.getElementById('mo-cat-hospital').innerHTML = '₩' + curStats.catMap.hospital.toLocaleString() + getTrendHtml(curStats.catMap.hospital, prevStats.catMap.hospital);
+        document.getElementById('mo-cat-shopping').innerHTML = '₩' + curStats.catMap.shopping.toLocaleString() + getTrendHtml(curStats.catMap.shopping, prevStats.catMap.shopping);
+        document.getElementById('mo-cat-other').innerHTML = '₩' + curStats.catMap.other.toLocaleString() + getTrendHtml(curStats.catMap.other, prevStats.catMap.other);
     }
 
     function calculateMainPageData() {
@@ -1272,6 +1289,7 @@ async function loadAllDataFromFirebase() {
         calculateTotal();
     }
 
+    /* 🔥 수정사항 2: 모바일 콤팩트 UI 통합 및 새 행 입력 중 자동 접힘 방지 */
     function updateMobileCompactRows(tbodyId, type) {
         const tbody = document.getElementById(tbodyId);
         if (!tbody) return;
@@ -1279,6 +1297,12 @@ async function loadAllDataFromFirebase() {
 
         Array.from(tbody.rows).forEach(tr => {
             if (!mobile) {
+                tr.classList.remove('expense-mobile-has-data');
+                return;
+            }
+
+            // 만약 새로 추가된 입력 중인 행이라면 접지 않고 전체 입력 셀들을 노출
+            if (tr.classList.contains('expense-mobile-editing')) {
                 tr.classList.remove('expense-mobile-has-data');
                 return;
             }
@@ -1399,10 +1423,16 @@ async function loadAllDataFromFirebase() {
         updateMobileCompactRows('lump-tbody', 'lump');
     }
 
-    /* 🔥 [이달의 지출] 행 추가 시 맨 위에 삽입 (prepend) 되도록 수정 */
+    /* 🔥 수정사항 2: 행 추가 시 입력 모드(editing) 상태로 지정하여 모든 셀 입력이 끝날 때까지 접히지 않도록 함 */
     function addExpenseRow(data = {}, storeIndex = null, prepend = false) {
         const tbody = document.getElementById('expense-tbody');
         const tr = document.createElement('tr');
+        
+        // 데이터가 없는 신규 행 추가 시 editing 모드로 지정
+        if (prepend && (!data || Object.keys(data).length === 0)) {
+            tr.classList.add('expense-mobile-editing');
+        }
+
         const existingIndexes = Array.from(document.querySelectorAll('#expense-tbody tr'))
             .map(r => Number(r.dataset.storeIndex)).filter(Number.isFinite);
         tr.dataset.storeIndex = storeIndex !== null ? String(storeIndex) :
@@ -1490,11 +1520,15 @@ async function loadAllDataFromFirebase() {
         curStores().expenseStore[m] = list;
     }
 
+    /* 🔥 수정사항 1: 모바일/PC 로드 시 최근 저장한 값이 상단으로 출력되도록 역순(reverse) 로드 */
     function loadMonthExpenseData(m) {
         const tbody = document.getElementById('expense-tbody');
         tbody.innerHTML = '';
         const list = getSafeList(curStores().expenseStore, m);
-        list.forEach((data, index) => addExpenseRow(data, index, false));
+        // 최근에 들어온/저장된 데이터가 화면 맨 위에 오도록 역순 출력
+        for (let i = list.length - 1; i >= 0; i--) {
+            addExpenseRow(list[i], i, false);
+        }
         updateAllMobileCompactRows();
     }
 
@@ -2389,7 +2423,7 @@ async function loadAllDataFromFirebase() {
 }
 </style>
 
-<div class="app-version-mark" aria-label="앱 버전">v30_20260826</div>
+<div class="app-version-mark" aria-label="앱 버전">v31_20260830</div>
 <button id="mobile-fixed-save-button" type="button" onclick="saveDataToCloud()" aria-label="전체저장">☁️ 전체저장</button>
 </body>
 </html>
