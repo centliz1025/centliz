@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>스마트 웹 가계부 - 저장/모바일 개선본 · v31_20260830</title>
+    <title>스마트 웹 가계부 - 저장/모바일 개선본 · v32_20261119</title>
     
     <!-- PWA 모바일 설정 -->
     <meta name="theme-color" content="#422d53">
@@ -65,6 +65,11 @@
             margin: 0;
             padding: 20px;
             color: #333;
+        }
+
+        /* 한국어 기본 입력 유도 */
+        .ko-input {
+            ime-mode: active;
         }
 
         /* PWA 설치 배너/버튼 스타일 */
@@ -166,6 +171,98 @@
         .tab-content { display: none; }
         .tab-content.active { display: block; animation: fadeIn 0.2s ease-in-out; }
 
+        /* --- 상단 액션 + 결제방법 필터 바 --- */
+        .table-top-toolbar {
+            max-width: 1100px;
+            margin: 0 auto 10px auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .table-top-toolbar .btn-add { margin-bottom: 0; }
+        .payment-filter-bar {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: #ffffff;
+            border: 1px solid #cfc5da;
+            border-radius: 6px;
+            padding: 4px 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .payment-filter-bar.active-filter {
+            background: #fff8e1;
+            border-color: #ffb300;
+        }
+        .payment-filter-bar label {
+            font-size: 0.83rem;
+            font-weight: 700;
+            color: #422d53;
+            white-space: nowrap;
+        }
+        .payment-filter-bar select {
+            width: auto;
+            height: auto;
+            padding: 3px 6px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #2b1d3a;
+            background: #f8f6fb;
+            border: 1px solid #d5cce0;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .filter-count-badge {
+            font-size: 0.8rem;
+            font-weight: 800;
+            color: #e65100;
+            background: #ffe0b2;
+            padding: 2px 7px;
+            border-radius: 10px;
+            white-space: nowrap;
+        }
+        .btn-filter-reset {
+            border: none;
+            background: #e0e0e0;
+            color: #333;
+            font-size: 0.75rem;
+            font-weight: bold;
+            padding: 3px 7px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .btn-filter-reset:hover { background: #ccc; }
+
+        /* 엑셀 스타일 헤더 필터 드롭다운 */
+        .th-filter-select {
+            display: block;
+            width: 100%;
+            height: 20px;
+            margin-top: 3px;
+            padding: 0 2px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #2b1d3a;
+            background-color: #f3e8ff;
+            border: 1px solid #b39ddb;
+            border-radius: 3px;
+            cursor: pointer;
+            text-align: center;
+        }
+        .th-filter-select.active-filter {
+            background-color: #ffecb3;
+            border-color: #ffa000;
+            color: #bf360c;
+        }
+
+        /* 필터로 숨겨진 행 */
+        tbody tr.filtered-hidden,
+        table tbody tr.filtered-hidden {
+            display: none !important;
+        }
+
         /* --- 테이블 공통 스타일 --- */
         .table-container { max-width: 1100px; margin: 0 auto; max-height: 60vh; overflow-y: auto; overflow-x: auto; background: #ffffff; border: 1px solid #ccc; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         table { width: 100%; border-collapse: collapse; min-width: 850px; font-size: 13px; }
@@ -179,7 +276,7 @@
         .col-check { width: 70px; }
         .col-date { width: 60px; font-weight: bold; }
         .col-amount { width: 110px; text-align: right; font-weight: bold; color: #1b5e20; }
-        .col-category, .col-payment { width: 90px; }
+        .col-category, .col-payment { width: 95px; }
         .col-memo { min-width: 150px; text-align: left; }
         .col-dc, .col-point, .col-etc { width: 80px; text-align: right; }
         .col-action { width: 40px; }
@@ -223,6 +320,56 @@
         .stat-val-cell.net { color: #2b1d3a; }
         .stat-val-cell.highlight { color: #2e7d32; font-size: 15px; background-color: #e8f5e9; }
         .stat-val-cell.blue { color: #1565c0; font-size: 15px; background-color: #e3f2fd; }
+
+        /* --- 스마트 내용 자동완성 드롭다운 --- */
+        #memo-autocomplete-box {
+            position: fixed;
+            z-index: 100000;
+            background: #ffffff;
+            border: 1.5px solid #422d53;
+            border-radius: 10px;
+            box-shadow: 0 8px 24px rgba(43, 29, 58, 0.22);
+            max-height: 220px;
+            overflow-y: auto;
+            display: none;
+            min-width: 200px;
+            box-sizing: border-box;
+        }
+        .memo-ac-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 9px 12px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0ebf5;
+            font-size: 13.5px;
+        }
+        .memo-ac-item:last-child { border-bottom: none; }
+        .memo-ac-item:hover, .memo-ac-item.active {
+            background-color: #f3e8ff;
+        }
+        .memo-ac-title {
+            font-weight: 700;
+            color: #2b1d3a;
+            word-break: break-all;
+        }
+        .memo-ac-title mark {
+            background: #ffe082;
+            color: #2b1d3a;
+            padding: 0 1px;
+            border-radius: 2px;
+        }
+        .memo-ac-badge {
+            flex-shrink: 0;
+            font-size: 11px;
+            font-weight: 700;
+            color: #2e7d32;
+            background: #e8f5e9;
+            border: 1px solid #c8e6c9;
+            padding: 2px 7px;
+            border-radius: 10px;
+        }
 
         /* =========================
            모바일 전용 입력/보기 개선
@@ -269,7 +416,7 @@
             .payday-dday { font-size: 1.35rem; }
         }
     
-    /* v18 모바일 고정 전체저장 */
+    /* 모바일 고정 전체저장 */
     #mobile-fixed-save-button {
         position: fixed; right: 12px; bottom: 12px; z-index: 9998; display: none; padding: 9px 13px;
         border: none; border-radius: 9px; background: #007BFF; color: #ffffff; box-shadow: 0 3px 12px rgba(0,0,0,.3);
@@ -385,11 +532,14 @@ async function loadAllDataFromFirebase() {
 
 <input type="file" id="csv-file-input" accept=".csv" style="display:none;" onchange="handleCSVImport(event)">
 
+<!-- 스마트 내용 자동완성 추천 팝업 -->
+<div id="memo-autocomplete-box" role="listbox" aria-label="내용 자동완성 추천"></div>
+
 <!-- 메인 페이지 -->
 <div id="main-page" class="page active">
     <div class="main-container">
 
-        <!-- 📲 PWA 설치 안내 배너 -->
+        <!-- PWA 설치 안내 배너 -->
         <div id="pwa-install-banner" class="pwa-install-container">
             <span class="pwa-install-text">📱 가계부 앱으로 설치하기</span>
             <button class="btn-pwa-install" onclick="triggerPwaInstall()">앱 추가</button>
@@ -419,7 +569,7 @@ async function loadAllDataFromFirebase() {
         <button class="btn-write" onclick="goToInputPage()">📝 가계부 작성하기</button>
         <div class="active-month-badge">현재 선택: <span id="active-year">2026</span>년 <span id="active-month">?</span>월 가계부</div>
 
-        <!-- 🔥 선택 월 상세 요약 & 전월비교 (수정사항 3: 7가지 항목 추가) -->
+        <!-- 선택 월 상세 요약 & 전월비교 -->
         <div class="main-summary-stats">
             <div class="main-summary-title" id="main-summary-title">📊 2026년 8월 요약 (전월 비교)</div>
             <table class="main-summary-table">
@@ -476,7 +626,26 @@ async function loadAllDataFromFirebase() {
     
     <!-- 1. 이달의 지출 탭 -->
     <div id="tab-expense" class="tab-content active">
-        <div style="max-width: 1100px; margin: 0 auto;"><button class="btn-add" onclick="addExpenseRow({}, null, true)">+ 행 추가</button></div>
+        <div class="table-top-toolbar">
+            <button class="btn-add" onclick="addExpenseRow({}, null, true)">+ 행 추가</button>
+            <div class="payment-filter-bar" id="expense-filter-bar-wrap">
+                <label for="expense-payment-filter-bar">💳 결제방법 정렬:</label>
+                <select id="expense-payment-filter-bar" onchange="onExpensePaymentFilterChange(this.value)">
+                    <option value="all">전체 보기</option>
+                    <option value="samsung">삼성</option>
+                    <option value="shinhan">신한</option>
+                    <option value="lotte">롯데</option>
+                    <option value="hyundai">현대</option>
+                    <option value="eeum">e음</option>
+                    <option value="kakao">카카오</option>
+                    <option value="kb">KB</option>
+                    <option value="other">기타</option>
+                    <option value="none">미지정(-)</option>
+                </select>
+                <span id="expense-filter-badge" class="filter-count-badge" style="display:none;"></span>
+                <button type="button" id="expense-filter-reset-btn" class="btn-filter-reset" style="display:none;" onclick="onExpensePaymentFilterChange('all')">전체</button>
+            </div>
+        </div>
         <div class="table-container">
             <table>
                 <thead>
@@ -485,7 +654,21 @@ async function loadAllDataFromFirebase() {
                         <th class="col-date">DATE</th>
                         <th class="col-amount">Amount</th>
                         <th class="col-category">항목</th>
-                        <th class="col-payment">결제 방법</th>
+                        <th class="col-payment">
+                            결제 방법
+                            <select id="expense-payment-filter-th" class="th-filter-select" onchange="onExpensePaymentFilterChange(this.value)" title="결제방법 필터/정렬">
+                                <option value="all">▼ 전체</option>
+                                <option value="samsung">삼성</option>
+                                <option value="shinhan">신한</option>
+                                <option value="lotte">롯데</option>
+                                <option value="hyundai">현대</option>
+                                <option value="eeum">e음</option>
+                                <option value="kakao">카카오</option>
+                                <option value="kb">KB</option>
+                                <option value="other">기타</option>
+                                <option value="none">미지정(-)</option>
+                            </select>
+                        </th>
                         <th class="col-memo">내용</th>
                         <th class="col-dc">D.C</th>
                         <th class="col-point">point</th>
@@ -547,14 +730,47 @@ async function loadAllDataFromFirebase() {
 
     <!-- 3. 목돈지출 탭 -->
     <div id="tab-lump" class="tab-content">
-        <div style="max-width: 1100px; margin: 0 auto;"><button class="btn-add" onclick="addLumpRow()">+ 행 추가</button></div>
+        <div class="table-top-toolbar">
+            <button class="btn-add" onclick="addLumpRow()">+ 행 추가</button>
+            <div class="payment-filter-bar" id="lump-filter-bar-wrap">
+                <label for="lump-payment-filter-bar">💳 결제방법 정렬:</label>
+                <select id="lump-payment-filter-bar" onchange="onLumpPaymentFilterChange(this.value)">
+                    <option value="all">전체 보기</option>
+                    <option value="samsung">삼성</option>
+                    <option value="shinhan">신한</option>
+                    <option value="lotte">롯데</option>
+                    <option value="hyundai">현대</option>
+                    <option value="eeum">e음</option>
+                    <option value="kakao">카카오</option>
+                    <option value="kb">KB</option>
+                    <option value="other">기타</option>
+                    <option value="none">미지정(-)</option>
+                </select>
+                <span id="lump-filter-badge" class="filter-count-badge" style="display:none;"></span>
+                <button type="button" id="lump-filter-reset-btn" class="btn-filter-reset" style="display:none;" onclick="onLumpPaymentFilterChange('all')">전체</button>
+            </div>
+        </div>
         <div class="table-container">
             <table>
                 <thead>
                     <tr>
                         <th class="col-date">DATE</th>
                         <th class="col-amount">Amount</th>
-                        <th class="col-payment">결제방법</th>
+                        <th class="col-payment">
+                            결제방법
+                            <select id="lump-payment-filter-th" class="th-filter-select" onchange="onLumpPaymentFilterChange(this.value)" title="결제방법 필터/정렬">
+                                <option value="all">▼ 전체</option>
+                                <option value="samsung">삼성</option>
+                                <option value="shinhan">신한</option>
+                                <option value="lotte">롯데</option>
+                                <option value="hyundai">현대</option>
+                                <option value="eeum">e음</option>
+                                <option value="kakao">카카오</option>
+                                <option value="kb">KB</option>
+                                <option value="other">기타</option>
+                                <option value="none">미지정(-)</option>
+                            </select>
+                        </th>
                         <th class="col-memo">내용</th>
                         <th class="col-dc">D.C</th>
                         <th class="col-point">point</th>
@@ -589,7 +805,7 @@ async function loadAllDataFromFirebase() {
                     </tr>
                     <tr>
                         <td class="col-amount"><input type="number" id="inc-amt-3" class="amount-input income-input" oninput="calcIncomeTotal()" placeholder="0"></td>
-                        <td class="income-label-td">부수입</td>
+                        <td class="income-label-td">부수입 <span style="font-size:11px; color:#888; font-weight:normal;">(합계제외)</span></td>
                     </tr>
                     <tr class="income-total-row">
                         <td id="inc-amt-4" class="income-total-val">₩0</td>
@@ -640,7 +856,7 @@ async function loadAllDataFromFirebase() {
                     <tbody>
                         <tr><td>인성 월급</td><td id="st-inc-1" class="stat-val-cell net">₩0</td></tr>
                         <tr><td>혜선 월급</td><td id="st-inc-2" class="stat-val-cell net">₩0</td></tr>
-                        <tr><td>부수입</td><td id="st-inc-3" class="stat-val-cell net">₩0</td></tr>
+                        <tr><td>부수입 (합계제외)</td><td id="st-inc-3" class="stat-val-cell net">₩0</td></tr>
                         <tr style="background:#f3e8ff;">
                             <td style="font-weight:bold; color:#422d53;">수입 합계</td>
                             <td id="st-inc-total" class="stat-val-cell net" style="color:#422d53; font-size:14px;">₩0</td>
@@ -778,6 +994,34 @@ async function loadAllDataFromFirebase() {
     const TODAY = new Date();
     const holidays = ['2026-08-15', '2026-09-24', '2026-09-25', '2026-09-26', '2026-10-03', '2026-10-09'];
 
+    const CATEGORY_LABELS = {
+        none: '-',
+        coupang: '쿠팡',
+        mart: '마트',
+        food: '식비',
+        childcare: '육아',
+        cafe: '카페',
+        hospital: '병원',
+        shopping: '쇼핑',
+        other: '기타'
+    };
+
+    const PAYMENT_LABELS = {
+        all: '전체',
+        none: '미지정(-)',
+        shinhan: '신한',
+        lotte: '롯데',
+        samsung: '삼성',
+        hyundai: '현대',
+        eeum: 'e음',
+        kakao: '카카오',
+        kb: 'KB',
+        other: '기타'
+    };
+
+    let currentExpensePaymentFilter = 'all';
+    let currentLumpPaymentFilter = 'all';
+
     function isHolidayOrWeekend(targetDate) {
         const day = targetDate.getDay();
         if (day === 0 || day === 6) return true; 
@@ -900,6 +1144,518 @@ async function loadAllDataFromFirebase() {
         return allYearsData[key];
     }
 
+    /* ==========================================================
+       1. 결제방법 필터 / 정렬 기능 (이달의 지출 & 목돈지출)
+       ========================================================== */
+    function onExpensePaymentFilterChange(val) {
+        currentExpensePaymentFilter = val || 'all';
+        const barSel = document.getElementById('expense-payment-filter-bar');
+        const thSel = document.getElementById('expense-payment-filter-th');
+        const barWrap = document.getElementById('expense-filter-bar-wrap');
+        const resetBtn = document.getElementById('expense-filter-reset-btn');
+
+        if (barSel) barSel.value = currentExpensePaymentFilter;
+        if (thSel) thSel.value = currentExpensePaymentFilter;
+
+        const isActive = currentExpensePaymentFilter !== 'all';
+        if (barWrap) barWrap.classList.toggle('active-filter', isActive);
+        if (thSel) thSel.classList.toggle('active-filter', isActive);
+        if (resetBtn) resetBtn.style.display = isActive ? 'inline-block' : 'none';
+
+        applyExpensePaymentFilter();
+        calculateTotal();
+    }
+
+    function applyExpensePaymentFilter() {
+        const tbody = document.getElementById('expense-tbody');
+        const badge = document.getElementById('expense-filter-badge');
+        if (!tbody) return;
+
+        const filter = currentExpensePaymentFilter;
+        const rows = Array.from(tbody.querySelectorAll('tr'));
+        let matchCount = 0;
+        let matchSum = 0;
+
+        rows.forEach(tr => {
+            if (filter === 'all') {
+                tr.classList.remove('filtered-hidden');
+                return;
+            }
+            const payVal = tr.querySelector('.exp-payment')?.value || 'none';
+            if (payVal === filter) {
+                tr.classList.remove('filtered-hidden');
+                matchCount++;
+                matchSum += Math.max(0, parseFloat(tr.querySelector('.exp-amount')?.value || 0) || 0);
+            } else {
+                tr.classList.add('filtered-hidden');
+            }
+        });
+
+        if (badge) {
+            if (filter === 'all') {
+                badge.style.display = 'none';
+            } else {
+                const label = PAYMENT_LABELS[filter] || filter;
+                badge.style.display = 'inline-block';
+                badge.textContent = `${label} ${matchCount}건 · ₩${matchSum.toLocaleString()}`;
+            }
+        }
+    }
+
+    function onLumpPaymentFilterChange(val) {
+        currentLumpPaymentFilter = val || 'all';
+        const barSel = document.getElementById('lump-payment-filter-bar');
+        const thSel = document.getElementById('lump-payment-filter-th');
+        const barWrap = document.getElementById('lump-filter-bar-wrap');
+        const resetBtn = document.getElementById('lump-filter-reset-btn');
+
+        if (barSel) barSel.value = currentLumpPaymentFilter;
+        if (thSel) thSel.value = currentLumpPaymentFilter;
+
+        const isActive = currentLumpPaymentFilter !== 'all';
+        if (barWrap) barWrap.classList.toggle('active-filter', isActive);
+        if (thSel) thSel.classList.toggle('active-filter', isActive);
+        if (resetBtn) resetBtn.style.display = isActive ? 'inline-block' : 'none';
+
+        applyLumpPaymentFilter();
+        calculateTotal();
+    }
+
+    function applyLumpPaymentFilter() {
+        const tbody = document.getElementById('lump-tbody');
+        const badge = document.getElementById('lump-filter-badge');
+        if (!tbody) return;
+
+        const filter = currentLumpPaymentFilter;
+        const rows = Array.from(tbody.querySelectorAll('tr'));
+        let matchCount = 0;
+        let matchSum = 0;
+
+        rows.forEach(tr => {
+            if (filter === 'all') {
+                tr.classList.remove('filtered-hidden');
+                return;
+            }
+            const payVal = tr.querySelector('.lump-payment')?.value || 'none';
+            if (payVal === filter) {
+                tr.classList.remove('filtered-hidden');
+                matchCount++;
+                matchSum += Math.max(0, parseFloat(tr.querySelector('.lump-amount')?.value || 0) || 0);
+            } else {
+                tr.classList.add('filtered-hidden');
+            }
+        });
+
+        if (badge) {
+            if (filter === 'all') {
+                badge.style.display = 'none';
+            } else {
+                const label = PAYMENT_LABELS[filter] || filter;
+                badge.style.display = 'inline-block';
+                badge.textContent = `${label} ${matchCount}건 · ₩${matchSum.toLocaleString()}`;
+            }
+        }
+    }
+
+    /* ==========================================================
+       2. 과거 데이터 학습 기반 스마트 내용 자동완성 & 항목 자동매핑
+       ========================================================== */
+    let activeMemoInput = null;
+    let activeMemoMatches = [];
+    let activeMemoSelectedIndex = 0;
+    let isMemoComposing = false;
+    let lastKeyWasDelete = false;
+    let userDismissedAutocomplete = false;
+
+    function isMobileViewport() {
+        return window.matchMedia('(max-width: 768px)').matches;
+    }
+
+    function escapeHtml(str) {
+        return String(str || '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+
+    function buildMemoKnowledgeBase(excludeTr = null) {
+        const map = new Map();
+        let seq = 0;
+
+        function recordEntry(memoRaw, categoryRaw, paymentRaw) {
+            const memo = String(memoRaw || '').trim();
+            if (!memo) return;
+            seq++;
+            const key = memo.toLowerCase();
+            const existing = map.get(key) || {
+                memo: memo,
+                category: 'none',
+                payment: 'none',
+                count: 0,
+                lastOrder: 0
+            };
+            existing.memo = memo;
+            existing.count += 1;
+            existing.lastOrder = seq;
+            if (categoryRaw && categoryRaw !== 'none') {
+                existing.category = categoryRaw;
+            }
+            if (paymentRaw && paymentRaw !== 'none') {
+                existing.payment = paymentRaw;
+            }
+            map.set(key, existing);
+        }
+
+        const years = Object.keys(allYearsData).map(Number).filter(Number.isFinite).sort((a, b) => a - b);
+        years.forEach(y => {
+            const stores = allYearsData[String(y)];
+            if (!stores) return;
+            for (let m = 1; m <= 12; m++) {
+                const expList = getSafeList(stores.expenseStore, m);
+                expList.forEach(row => {
+                    if (row && row.memo) recordEntry(row.memo, row.category, row.payment);
+                });
+                const lumpList = getSafeList(stores.lumpStore, m);
+                lumpList.forEach(row => {
+                    if (row && row.memo) recordEntry(row.memo, 'none', row.payment);
+                });
+                const mKey = getMonthKey(y, m);
+                const genList = getSafeList(stores.fixedGeneralStore, mKey);
+                genList.forEach(row => {
+                    if (row && row.memo) recordEntry(row.memo, 'none', 'none');
+                });
+                const cardList = getSafeList(stores.fixedCardStore, mKey);
+                cardList.forEach(row => {
+                    if (row && row.memo) recordEntry(row.memo, 'none', 'none');
+                });
+            }
+        });
+
+        document.querySelectorAll('#expense-tbody tr').forEach(tr => {
+            if (tr === excludeTr) return;
+            const mVal = tr.querySelector('.exp-memo')?.value?.trim();
+            const cVal = tr.querySelector('.exp-category')?.value || 'none';
+            const pVal = tr.querySelector('.exp-payment')?.value || 'none';
+            if (mVal) recordEntry(mVal, cVal, pVal);
+        });
+
+        return Array.from(map.values());
+    }
+
+    function findMemoMatches(query, excludeTr = null) {
+        const q = String(query || '').trim();
+        if (!q) return [];
+        const qLower = q.toLowerCase();
+        const kb = buildMemoKnowledgeBase(excludeTr);
+
+        const prefixMatches = [];
+        const containsMatches = [];
+
+        kb.forEach(item => {
+            const mLower = item.memo.toLowerCase();
+            if (mLower.startsWith(qLower)) {
+                prefixMatches.push(item);
+            } else if (mLower.includes(qLower)) {
+                containsMatches.push(item);
+            }
+        });
+
+        const sortFn = (a, b) => {
+            const aHasCat = a.category && a.category !== 'none' ? 1 : 0;
+            const bHasCat = b.category && b.category !== 'none' ? 1 : 0;
+            if (b.lastOrder !== a.lastOrder) return b.lastOrder - a.lastOrder;
+            if (bHasCat !== aHasCat) return bHasCat - aHasCat;
+            return b.count - a.count;
+        };
+
+        prefixMatches.sort(sortFn);
+        containsMatches.sort(sortFn);
+
+        return prefixMatches.concat(containsMatches).slice(0, 8);
+    }
+
+    function applyLearnedCategoryForRow(tr, memoText) {
+        if (!tr) return;
+        const catSel = tr.querySelector('.exp-category');
+        if (!catSel) return;
+
+        const cleanMemo = String(memoText || '').trim().toLowerCase();
+        if (!cleanMemo) return;
+
+        const kb = buildMemoKnowledgeBase(tr);
+        const exact = kb.find(item => item.memo.toLowerCase() === cleanMemo && item.category && item.category !== 'none');
+        if (exact) {
+            if (catSel.value === 'none' || catSel.dataset.autoSet === 'true') {
+                catSel.value = exact.category;
+                catSel.dataset.autoSet = 'true';
+            }
+        }
+    }
+
+    function positionMemoAutocompleteBox(inputEl) {
+        const box = document.getElementById('memo-autocomplete-box');
+        if (!box || !inputEl) return;
+        const rect = inputEl.getBoundingClientRect();
+        const viewportH = window.innerHeight;
+        const viewportW = window.innerWidth;
+
+        const width = Math.max(rect.width, 220);
+        let left = rect.left;
+        if (left + width > viewportW - 10) {
+            left = Math.max(10, viewportW - width - 10);
+        }
+
+        box.style.width = width + 'px';
+        box.style.left = left + 'px';
+
+        if (rect.bottom + 210 > viewportH && rect.top > 210) {
+            box.style.top = 'auto';
+            box.style.bottom = (viewportH - rect.top + 4) + 'px';
+        } else {
+            box.style.bottom = 'auto';
+            box.style.top = (rect.bottom + 4) + 'px';
+        }
+    }
+
+    function hideMemoAutocomplete() {
+        const box = document.getElementById('memo-autocomplete-box');
+        if (box) box.style.display = 'none';
+        activeMemoMatches = [];
+        activeMemoSelectedIndex = 0;
+    }
+
+    function renderMemoAutocomplete(inputEl, query, matches) {
+        const box = document.getElementById('memo-autocomplete-box');
+        if (!box || !inputEl || !matches || matches.length === 0) {
+            hideMemoAutocomplete();
+            return;
+        }
+
+        activeMemoInput = inputEl;
+        activeMemoMatches = matches;
+        if (activeMemoSelectedIndex >= matches.length) activeMemoSelectedIndex = 0;
+
+        const qEsc = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regex = new RegExp(`(${qEsc})`, 'i');
+
+        box.innerHTML = matches.map((item, idx) => {
+            const highlighted = escapeHtml(item.memo).replace(regex, '<mark>$1</mark>');
+            const catLabel = item.category && item.category !== 'none' ? (CATEGORY_LABELS[item.category] || item.category) : '';
+            const badgeHtml = catLabel ? `<span class="memo-ac-badge">${escapeHtml(catLabel)}</span>` : '';
+            return `
+                <div class="memo-ac-item ${idx === activeMemoSelectedIndex ? 'active' : ''}" data-ac-idx="${idx}">
+                    <span class="memo-ac-title">${highlighted}</span>
+                    ${badgeHtml}
+                </div>
+            `;
+        }).join('');
+
+        positionMemoAutocompleteBox(inputEl);
+        box.style.display = 'block';
+    }
+
+    function confirmMemoSuggestion(inputEl, item) {
+        if (!inputEl || !item) return;
+        const tr = inputEl.closest('tr');
+        inputEl.value = item.memo;
+        inputEl.dataset.rawTyped = item.memo;
+        inputEl.dataset.inlineCompleted = 'false';
+
+        try {
+            inputEl.setSelectionRange(item.memo.length, item.memo.length);
+        } catch (e) {}
+
+        if (tr && item.category && item.category !== 'none') {
+            const catSel = tr.querySelector('.exp-category');
+            if (catSel && (catSel.value === 'none' || catSel.dataset.autoSet === 'true')) {
+                catSel.value = item.category;
+                catSel.dataset.autoSet = 'true';
+            }
+        } else if (tr) {
+            applyLearnedCategoryForRow(tr, item.memo);
+        }
+
+        hideMemoAutocomplete();
+        saveCurrentMonthStores();
+        updateAllMobileCompactRows();
+    }
+
+    function processMemoAutocomplete(inputEl, allowInlineCompletion) {
+        if (!inputEl) return;
+        const tr = inputEl.closest('tr');
+        const rawVal = inputEl.value;
+        const trimmed = rawVal.trim();
+
+        if (!trimmed) {
+            inputEl.dataset.rawTyped = '';
+            inputEl.dataset.inlineCompleted = 'false';
+            hideMemoAutocomplete();
+            return;
+        }
+
+        const matches = findMemoMatches(trimmed, tr);
+        activeMemoSelectedIndex = 0;
+
+        if (tr) {
+            applyLearnedCategoryForRow(tr, trimmed);
+        }
+
+        if (allowInlineCompletion && !userDismissedAutocomplete && !lastKeyWasDelete && matches.length > 0) {
+            const topMatch = matches[0];
+            if (topMatch.memo.toLowerCase().startsWith(trimmed.toLowerCase()) && topMatch.memo.length > rawVal.length) {
+                if (tr && topMatch.category && topMatch.category !== 'none') {
+                    const catSel = tr.querySelector('.exp-category');
+                    if (catSel && (catSel.value === 'none' || catSel.dataset.autoSet === 'true')) {
+                        catSel.value = topMatch.category;
+                        catSel.dataset.autoSet = 'true';
+                    }
+                }
+
+                if (!isMobileViewport() && document.activeElement === inputEl) {
+                    inputEl.dataset.rawTyped = rawVal;
+                    inputEl.dataset.inlineCompleted = 'true';
+                    inputEl.value = topMatch.memo;
+                    try {
+                        inputEl.setSelectionRange(rawVal.length, topMatch.memo.length);
+                    } catch (e) {}
+                }
+            }
+        }
+
+        const queryForHighlight = (inputEl.dataset.inlineCompleted === 'true' && inputEl.dataset.rawTyped)
+            ? inputEl.dataset.rawTyped
+            : trimmed;
+
+        renderMemoAutocomplete(inputEl, queryForHighlight, matches);
+    }
+
+    document.addEventListener('compositionstart', function(e) {
+        if (e.target && e.target.classList && e.target.classList.contains('memo-autocomplete-input')) {
+            isMemoComposing = true;
+            userDismissedAutocomplete = false;
+        }
+    });
+
+    document.addEventListener('compositionend', function(e) {
+        if (e.target && e.target.classList && e.target.classList.contains('memo-autocomplete-input')) {
+            isMemoComposing = false;
+            processMemoAutocomplete(e.target, true);
+        }
+    });
+
+    document.addEventListener('input', function(e) {
+        if (e.target && e.target.classList && e.target.classList.contains('memo-autocomplete-input')) {
+            if (e.target.dataset.inlineCompleted === 'true') {
+                e.target.dataset.inlineCompleted = 'false';
+            }
+            if (isMemoComposing) {
+                processMemoAutocomplete(e.target, false);
+            } else {
+                processMemoAutocomplete(e.target, true);
+            }
+        }
+    });
+
+    document.addEventListener('keydown', function(e) {
+        const target = e.target;
+        if (!target || !target.classList || !target.classList.contains('memo-autocomplete-input')) return;
+
+        lastKeyWasDelete = (e.key === 'Backspace' || e.key === 'Delete');
+        if (!lastKeyWasDelete) {
+            userDismissedAutocomplete = false;
+        }
+
+        const box = document.getElementById('memo-autocomplete-box');
+        const isBoxVisible = box && box.style.display === 'block' && activeMemoMatches.length > 0;
+
+        if (isBoxVisible) {
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                activeMemoSelectedIndex = (activeMemoSelectedIndex + 1) % activeMemoMatches.length;
+                const q = target.dataset.rawTyped || target.value.trim();
+                renderMemoAutocomplete(target, q, activeMemoMatches);
+                return;
+            }
+            if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                activeMemoSelectedIndex = (activeMemoSelectedIndex - 1 + activeMemoMatches.length) % activeMemoMatches.length;
+                const q = target.dataset.rawTyped || target.value.trim();
+                renderMemoAutocomplete(target, q, activeMemoMatches);
+                return;
+            }
+            if (e.key === 'Enter' && !isMemoComposing) {
+                e.preventDefault();
+                confirmMemoSuggestion(target, activeMemoMatches[activeMemoSelectedIndex]);
+                return;
+            }
+            if (e.key === 'Tab') {
+                if (target.dataset.inlineCompleted === 'true' || activeMemoMatches.length > 0) {
+                    confirmMemoSuggestion(target, activeMemoMatches[activeMemoSelectedIndex]);
+                }
+                hideMemoAutocomplete();
+                return;
+            }
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                userDismissedAutocomplete = true;
+                if (target.dataset.inlineCompleted === 'true' && target.dataset.rawTyped !== undefined) {
+                    target.value = target.dataset.rawTyped;
+                    target.dataset.inlineCompleted = 'false';
+                }
+                hideMemoAutocomplete();
+                return;
+            }
+        }
+    });
+
+    document.addEventListener('mousedown', function(e) {
+        const itemEl = e.target.closest && e.target.closest('.memo-ac-item');
+        if (itemEl && activeMemoInput) {
+            e.preventDefault();
+            const idx = parseInt(itemEl.dataset.acIdx, 10);
+            if (!isNaN(idx) && activeMemoMatches[idx]) {
+                confirmMemoSuggestion(activeMemoInput, activeMemoMatches[idx]);
+            }
+        }
+    });
+
+    document.addEventListener('focusout', function(e) {
+        const target = e.target;
+        if (target && target.classList && target.classList.contains('memo-autocomplete-input')) {
+            setTimeout(() => {
+                if (isMobileViewport() && !userDismissedAutocomplete && !lastKeyWasDelete) {
+                    const trimmed = target.value.trim();
+                    if (trimmed) {
+                        const tr = target.closest('tr');
+                        const matches = findMemoMatches(trimmed, tr);
+                        if (matches.length > 0 && matches[0].memo.toLowerCase().startsWith(trimmed.toLowerCase())) {
+                            confirmMemoSuggestion(target, matches[0]);
+                        } else if (tr) {
+                            applyLearnedCategoryForRow(tr, trimmed);
+                        }
+                    }
+                } else if (target.dataset.inlineCompleted === 'true') {
+                    target.dataset.inlineCompleted = 'false';
+                    const tr = target.closest('tr');
+                    if (tr) applyLearnedCategoryForRow(tr, target.value);
+                }
+                hideMemoAutocomplete();
+                saveCurrentMonthStores();
+                updateAllMobileCompactRows();
+            }, 120);
+        }
+    });
+
+    document.addEventListener('change', function(e) {
+        if (e.target && e.target.classList && e.target.classList.contains('exp-category')) {
+            e.target.dataset.autoSet = 'false';
+        }
+    });
+
+    /* ==========================================================
+       초기화 및 데이터 복원 로직
+       ========================================================== */
     let appReady = false;
     let cloudSyncBusy = false;
     let cloudDataLoaded = false;
@@ -1129,6 +1885,7 @@ async function loadAllDataFromFirebase() {
     }
 
     function goToMainPage() {
+        hideMemoAutocomplete();
         saveCurrentMonthStores(); 
         calculateMainPageData(); 
         document.getElementById('input-page').classList.remove('active');
@@ -1147,6 +1904,7 @@ async function loadAllDataFromFirebase() {
     }
 
     function onYearChange(newYear) {
+        hideMemoAutocomplete();
         saveCurrentMonthStores();
         isTableDataLoaded = false; 
         currentYear = parseInt(newYear);
@@ -1166,6 +1924,7 @@ async function loadAllDataFromFirebase() {
     }
 
     function switchTab(tabId, btnElement) {
+        hideMemoAutocomplete();
         saveCurrentMonthStores(); 
         document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
         document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
@@ -1178,7 +1937,6 @@ async function loadAllDataFromFirebase() {
         calculateTotal(); 
     }
 
-    /* 🔥 전월 비교 전용 태그 변환 함수 */
     function getTrendHtml(cur, prev) {
         const diff = cur - prev;
         if (diff > 0) return `<span class="trend-up">(+${diff.toLocaleString()})</span>`;
@@ -1186,7 +1944,6 @@ async function loadAllDataFromFirebase() {
         return `<span class="trend-same">(-)</span>`;
     }
 
-    /* 🔥 수정사항 3: 메인 요약에 7가지 항목별 생활비 추가 및 전월대비 증감 연결 */
     function updateMainMonthlyStatsView(yearNum, monthNum) {
         let prevY = yearNum;
         let prevM = monthNum - 1;
@@ -1212,7 +1969,6 @@ async function loadAllDataFromFirebase() {
         document.getElementById('mo-fuel-total').innerHTML = '₩' + curStats.fuelTotal.toLocaleString() + getTrendHtml(curStats.fuelTotal, prevStats.fuelTotal);
         document.getElementById('mo-food-total').innerHTML = '₩' + curStats.catMap.food.toLocaleString() + getTrendHtml(curStats.catMap.food, prevStats.catMap.food);
 
-        // 추가된 7가지 항목별 전월 비교
         document.getElementById('mo-cat-coupang').innerHTML = '₩' + curStats.catMap.coupang.toLocaleString() + getTrendHtml(curStats.catMap.coupang, prevStats.catMap.coupang);
         document.getElementById('mo-cat-mart').innerHTML = '₩' + curStats.catMap.mart.toLocaleString() + getTrendHtml(curStats.catMap.mart, prevStats.catMap.mart);
         document.getElementById('mo-cat-childcare').innerHTML = '₩' + curStats.catMap.childcare.toLocaleString() + getTrendHtml(curStats.catMap.childcare, prevStats.catMap.childcare);
@@ -1269,6 +2025,7 @@ async function loadAllDataFromFirebase() {
     }
 
     function onMonthChange(newMonth) {
+        hideMemoAutocomplete();
         saveCurrentMonthStores(); 
         isTableDataLoaded = false; 
 
@@ -1289,7 +2046,7 @@ async function loadAllDataFromFirebase() {
         calculateTotal();
     }
 
-    /* 🔥 수정사항 2: 모바일 콤팩트 UI 통합 및 새 행 입력 중 자동 접힘 방지 */
+    /* 모바일 콤팩트 UI 통합 및 새 행/입력 중 자동 접힘 방지 */
     function updateMobileCompactRows(tbodyId, type) {
         const tbody = document.getElementById(tbodyId);
         if (!tbody) return;
@@ -1301,8 +2058,7 @@ async function loadAllDataFromFirebase() {
                 return;
             }
 
-            // 만약 새로 추가된 입력 중인 행이라면 접지 않고 전체 입력 셀들을 노출
-            if (tr.classList.contains('expense-mobile-editing')) {
+            if (tr.classList.contains('expense-mobile-editing') || tr.contains(document.activeElement)) {
                 tr.classList.remove('expense-mobile-has-data');
                 return;
             }
@@ -1399,8 +2155,14 @@ async function loadAllDataFromFirebase() {
                 } else {
                     if (!confirm('이 내역을 삭제하시겠습니까?')) return;
                     tr.remove();
-                    if (type === 'expense') saveCurrentMonthExpenseData();
-                    if (type === 'lump') saveCurrentMonthLumpData();
+                    if (type === 'expense') {
+                        saveCurrentMonthExpenseData();
+                        applyExpensePaymentFilter();
+                    }
+                    if (type === 'lump') {
+                        saveCurrentMonthLumpData();
+                        applyLumpPaymentFilter();
+                    }
                     updateAllMobileCompactRows();
                     calculateTotal();
                 }
@@ -1423,14 +2185,15 @@ async function loadAllDataFromFirebase() {
         updateMobileCompactRows('lump-tbody', 'lump');
     }
 
-    /* 🔥 수정사항 2: 행 추가 시 입력 모드(editing) 상태로 지정하여 모든 셀 입력이 끝날 때까지 접히지 않도록 함 */
     function addExpenseRow(data = {}, storeIndex = null, prepend = false) {
         const tbody = document.getElementById('expense-tbody');
         const tr = document.createElement('tr');
         
-        // 데이터가 없는 신규 행 추가 시 editing 모드로 지정
         if (prepend && (!data || Object.keys(data).length === 0)) {
             tr.classList.add('expense-mobile-editing');
+            if (currentExpensePaymentFilter && currentExpensePaymentFilter !== 'all') {
+                data = Object.assign({}, data, { payment: currentExpensePaymentFilter });
+            }
         }
 
         const existingIndexes = Array.from(document.querySelectorAll('#expense-tbody tr'))
@@ -1441,8 +2204,8 @@ async function loadAllDataFromFirebase() {
 
         tr.innerHTML = `
             <td class="col-check"><input type="checkbox" class="exp-check" ${isChecked ? 'checked' : ''} onchange="toggleAmountHighlight(this)"></td>
-            <td class="col-date"><input type="text" class="exp-date" value="${data.date || ''}" style="text-align:center;"></td>
-            <td class="col-amount ${isChecked ? 'amount-active' : ''}"><input type="number" class="amount-input expense-input exp-amount" value="${data.amount || ''}" placeholder="0" oninput="handleAmountOrDcChange(this.closest('tr'))"></td>
+            <td class="col-date"><input type="text" class="exp-date" value="${escapeHtml(data.date || '')}" style="text-align:center;"></td>
+            <td class="col-amount ${isChecked ? 'amount-active' : ''}"><input type="number" class="amount-input expense-input exp-amount" value="${escapeHtml(data.amount || '')}" placeholder="0" oninput="handleAmountOrDcChange(this.closest('tr'))"></td>
             <td class="col-category">
                 <select class="exp-category">
                     <option value="none" ${!data.category || data.category === 'none' ? 'selected' : ''}>-</option>
@@ -1457,7 +2220,7 @@ async function loadAllDataFromFirebase() {
                 </select>
             </td>
             <td class="col-payment">
-                <select class="exp-payment" onchange="updateShinhanPointForRow(this.closest('tr'))">
+                <select class="exp-payment" onchange="updateShinhanPointForRow(this.closest('tr')); applyExpensePaymentFilter(); calculateTotal();">
                     <option value="none" ${!data.payment || data.payment === 'none' ? 'selected' : ''}>-</option>
                     <option value="shinhan" ${data.payment === 'shinhan' ? 'selected' : ''}>신한</option>
                     <option value="lotte" ${data.payment === 'lotte' ? 'selected' : ''}>롯데</option>
@@ -1469,10 +2232,10 @@ async function loadAllDataFromFirebase() {
                     <option value="other" ${data.payment === 'other' ? 'selected' : ''}>기타</option>
                 </select>
             </td>
-            <td class="col-memo"><input type="text" class="exp-memo" value="${data.memo || ''}"></td>
-            <td class="col-dc"><input type="number" class="expense-dc-input exp-dc" value="${data.dc || ''}" style="text-align:right;" oninput="handleAmountOrDcChange(this.closest('tr'))" placeholder="0"></td>
-            <td class="col-point"><input type="text" class="exp-point" value="${data.point || ''}" style="text-align:right;"></td>
-            <td class="col-etc"><input type="text" class="exp-etc" value="${data.etc || ''}"></td>
+            <td class="col-memo"><input type="text" lang="ko" inputmode="text" autocapitalize="off" autocomplete="off" class="exp-memo memo-autocomplete-input ko-input" value="${escapeHtml(data.memo || '')}"></td>
+            <td class="col-dc"><input type="number" class="expense-dc-input exp-dc" value="${escapeHtml(data.dc || '')}" style="text-align:right;" oninput="handleAmountOrDcChange(this.closest('tr'))" placeholder="0"></td>
+            <td class="col-point"><input type="text" class="exp-point" value="${escapeHtml(data.point || '')}" style="text-align:right;"></td>
+            <td class="col-etc"><input type="text" lang="ko" inputmode="text" autocapitalize="off" class="exp-etc ko-input" value="${escapeHtml(data.etc || '')}"></td>
             <td class="col-action"><button class="btn-delete" onclick="deleteRow(this)">✕</button></td>
         `;
         tr.dataset.newestExpenseRow = 'true';
@@ -1487,7 +2250,8 @@ async function loadAllDataFromFirebase() {
             const amtEl = tr.querySelector('.exp-amount');
             if (amtEl) amtEl.dataset.baseAmount = data.baseAmount;
         }
-        handleAmountOrDcChange(tr);
+        handleAmountOrDcChange(tr, false);
+        applyExpensePaymentFilter();
         updateAllMobileCompactRows();
     }
 
@@ -1496,7 +2260,12 @@ async function loadAllDataFromFirebase() {
         chk.checked ? amountTd.classList.add('amount-active') : amountTd.classList.remove('amount-active');
     }
 
-    function deleteRow(btn) { btn.closest('tr').remove(); calculateTotal(); updateAllMobileCompactRows(); }
+    function deleteRow(btn) {
+        btn.closest('tr').remove();
+        applyExpensePaymentFilter();
+        calculateTotal();
+        updateAllMobileCompactRows();
+    }
 
     function saveCurrentMonthExpenseData() {
         const m = currentInputMonth;
@@ -1520,15 +2289,14 @@ async function loadAllDataFromFirebase() {
         curStores().expenseStore[m] = list;
     }
 
-    /* 🔥 수정사항 1: 모바일/PC 로드 시 최근 저장한 값이 상단으로 출력되도록 역순(reverse) 로드 */
     function loadMonthExpenseData(m) {
         const tbody = document.getElementById('expense-tbody');
         tbody.innerHTML = '';
         const list = getSafeList(curStores().expenseStore, m);
-        // 최근에 들어온/저장된 데이터가 화면 맨 위에 오도록 역순 출력
         for (let i = list.length - 1; i >= 0; i--) {
             addExpenseRow(list[i], i, false);
         }
+        applyExpensePaymentFilter();
         updateAllMobileCompactRows();
     }
 
@@ -1546,11 +2314,11 @@ async function loadAllDataFromFirebase() {
             html += `
                 <tr data-index="${i}">
                     <td class="col-check"><input type="checkbox" onchange="onGlobalSyncCheckChange(this, ${i})" ${item.checked ? 'checked' : ''}></td>
-                    <td class="col-amount"><input type="number" class="amount-input gen-amount" value="${item.amount || ''}" data-base-amount="${item.baseAmount || item.amount || ''}" oninput="onGenAmountInput(this, ${i})" placeholder="0"></td>
-                    <td class="col-memo"><input type="text" class="gen-memo" value="${item.memo || ''}"></td>
-                    <td class="col-dc"><input type="number" class="gen-dc" value="${item.dc || ''}" oninput="handleAmountOrDcChange(this.closest('tr'))" style="text-align:right;" placeholder="0"></td>
-                    <td class="col-point"><input type="text" class="gen-point" value="${item.point || ''}" style="text-align:right;"></td>
-                    <td class="col-etc"><input type="text" class="gen-etc" value="${item.etc || ''}"></td>
+                    <td class="col-amount"><input type="number" class="amount-input gen-amount" value="${escapeHtml(item.amount || '')}" data-base-amount="${escapeHtml(item.baseAmount || item.amount || '')}" oninput="onGenAmountInput(this, ${i})" placeholder="0"></td>
+                    <td class="col-memo"><input type="text" lang="ko" inputmode="text" autocapitalize="off" autocomplete="off" class="gen-memo memo-autocomplete-input ko-input" value="${escapeHtml(item.memo || '')}"></td>
+                    <td class="col-dc"><input type="number" class="gen-dc" value="${escapeHtml(item.dc || '')}" oninput="handleAmountOrDcChange(this.closest('tr'))" style="text-align:right;" placeholder="0"></td>
+                    <td class="col-point"><input type="text" class="gen-point" value="${escapeHtml(item.point || '')}" style="text-align:right;"></td>
+                    <td class="col-etc"><input type="text" lang="ko" inputmode="text" autocapitalize="off" class="gen-etc ko-input" value="${escapeHtml(item.etc || '')}"></td>
                     <td class="col-action"><button class="btn-delete" style="padding:2px 5px;" onclick="deleteFixedRow(this)">✕</button></td>
                 </tr>
             `;
@@ -1602,7 +2370,7 @@ async function loadAllDataFromFirebase() {
                 if (i === 0) {
                     const nameContent = ct.id !== 'manual' 
                         ? `${ct.name}` 
-                        : `<input type="text" class="card-name-input" value="${item.cardName || ''}" placeholder="기타카드" style="text-align:center; background:#fff; height:24px; font-size:12px; margin-bottom:5px; width:80%;">`;
+                        : `<input type="text" lang="ko" inputmode="text" autocapitalize="off" class="card-name-input ko-input" value="${escapeHtml(item.cardName || '')}" placeholder="기타카드" style="text-align:center; background:#fff; height:24px; font-size:12px; margin-bottom:5px; width:80%;">`;
 
                     html += `<td rowspan="${count}" class="card-name-td" id="td-${ct.id}" style="padding:10px 5px;">
                                 ${nameContent}
@@ -1611,11 +2379,11 @@ async function loadAllDataFromFirebase() {
                              </td>`;
                 }
                 html += `
-                    <td class="col-amount"><input type="number" class="amount-input card-amount ${ct.id}-input" value="${item.amount || ''}" data-base-amount="${item.baseAmount || item.amount || ''}" oninput="recalcCardAndTotal('${ct.id}')" placeholder="0"></td>
-                    <td class="col-memo"><input type="text" class="card-memo" value="${item.memo || ''}"></td>
-                    <td class="col-dc"><input type="number" class="card-dc" value="${item.dc || ''}" oninput="handleAmountOrDcChange(this.closest('tr')); recalcCardAndTotal('${ct.id}');" style="text-align:right;" placeholder="0"></td>
-                    <td class="col-point"><input type="text" class="card-point" value="${item.point || ''}" style="text-align:right;"></td>
-                    <td class="col-etc"><input type="text" class="card-etc" value="${item.etc || ''}"></td>
+                    <td class="col-amount"><input type="number" class="amount-input card-amount ${ct.id}-input" value="${escapeHtml(item.amount || '')}" data-base-amount="${escapeHtml(item.baseAmount || item.amount || '')}" oninput="recalcCardAndTotal('${ct.id}')" placeholder="0"></td>
+                    <td class="col-memo"><input type="text" lang="ko" inputmode="text" autocapitalize="off" autocomplete="off" class="card-memo memo-autocomplete-input ko-input" value="${escapeHtml(item.memo || '')}"></td>
+                    <td class="col-dc"><input type="number" class="card-dc" value="${escapeHtml(item.dc || '')}" oninput="handleAmountOrDcChange(this.closest('tr')); recalcCardAndTotal('${ct.id}');" style="text-align:right;" placeholder="0"></td>
+                    <td class="col-point"><input type="text" class="card-point" value="${escapeHtml(item.point || '')}" style="text-align:right;"></td>
+                    <td class="col-etc"><input type="text" lang="ko" inputmode="text" autocapitalize="off" class="card-etc ko-input" value="${escapeHtml(item.etc || '')}"></td>
                     <td class="col-action" style="width:30px;"><button class="btn-delete" style="padding:2px 5px;" onclick="deleteFixedRow(this)">✕</button></td>
                 </tr>`;
                 globalIdx++;
@@ -1836,11 +2604,16 @@ async function loadAllDataFromFirebase() {
     function addLumpRow(data = {}) {
         const tbody = document.getElementById('lump-tbody');
         const tr = document.createElement('tr');
+        if (!data || Object.keys(data).length === 0) {
+            if (currentLumpPaymentFilter && currentLumpPaymentFilter !== 'all') {
+                data = Object.assign({}, data, { payment: currentLumpPaymentFilter });
+            }
+        }
         tr.innerHTML = `
-            <td class="col-date"><input type="text" class="lump-date" value="${data.date || ''}" style="text-align:center;"></td>
-            <td class="col-amount"><input type="number" class="amount-input lump-amount" value="${data.amount || ''}" placeholder="0" oninput="handleAmountOrDcChange(this.closest('tr'))"></td>
+            <td class="col-date"><input type="text" class="lump-date" value="${escapeHtml(data.date || '')}" style="text-align:center;"></td>
+            <td class="col-amount"><input type="number" class="amount-input lump-amount" value="${escapeHtml(data.amount || '')}" placeholder="0" oninput="handleAmountOrDcChange(this.closest('tr'))"></td>
             <td class="col-payment">
-                <select class="lump-payment" onchange="updateShinhanPointForRow(this.closest('tr'))">
+                <select class="lump-payment" onchange="updateShinhanPointForRow(this.closest('tr')); applyLumpPaymentFilter(); calculateTotal();">
                     <option value="none" ${!data.payment || data.payment === 'none' ? 'selected' : ''}>-</option>
                     <option value="shinhan" ${data.payment === 'shinhan' ? 'selected' : ''}>신한</option>
                     <option value="lotte" ${data.payment === 'lotte' ? 'selected' : ''}>롯데</option>
@@ -1852,10 +2625,10 @@ async function loadAllDataFromFirebase() {
                     <option value="other" ${data.payment === 'other' ? 'selected' : ''}>기타</option>
                 </select>
             </td>
-            <td class="col-memo"><input type="text" class="lump-memo" value="${data.memo || ''}"></td>
-            <td class="col-dc"><input type="number" class="lump-dc" value="${data.dc || ''}" style="text-align:right;" oninput="handleAmountOrDcChange(this.closest('tr'))" placeholder="0"></td>
-            <td class="col-point"><input type="text" class="lump-point" value="${data.point || ''}" style="text-align:right;"></td>
-            <td class="col-etc"><input type="text" class="lump-etc" value="${data.etc || ''}"></td>
+            <td class="col-memo"><input type="text" lang="ko" inputmode="text" autocapitalize="off" autocomplete="off" class="lump-memo memo-autocomplete-input ko-input" value="${escapeHtml(data.memo || '')}"></td>
+            <td class="col-dc"><input type="number" class="lump-dc" value="${escapeHtml(data.dc || '')}" style="text-align:right;" oninput="handleAmountOrDcChange(this.closest('tr'))" placeholder="0"></td>
+            <td class="col-point"><input type="text" class="lump-point" value="${escapeHtml(data.point || '')}" style="text-align:right;"></td>
+            <td class="col-etc"><input type="text" lang="ko" inputmode="text" autocapitalize="off" class="lump-etc ko-input" value="${escapeHtml(data.etc || '')}"></td>
             <td class="col-action"><button class="btn-delete" onclick="deleteLumpRow(this)">✕</button></td>
         `;
         tbody.appendChild(tr);
@@ -1863,11 +2636,17 @@ async function loadAllDataFromFirebase() {
             const amtEl = tr.querySelector('.lump-amount');
             if (amtEl) amtEl.dataset.baseAmount = data.baseAmount;
         }
-        handleAmountOrDcChange(tr);
+        handleAmountOrDcChange(tr, false);
+        applyLumpPaymentFilter();
         updateAllMobileCompactRows();
     }
 
-    function deleteLumpRow(btn) { btn.closest('tr').remove(); calculateTotal(); updateAllMobileCompactRows(); }
+    function deleteLumpRow(btn) {
+        btn.closest('tr').remove();
+        applyLumpPaymentFilter();
+        calculateTotal();
+        updateAllMobileCompactRows();
+    }
 
     function saveCurrentMonthLumpData() {
         const m = currentInputMonth;
@@ -1899,6 +2678,7 @@ async function loadAllDataFromFirebase() {
         tbody.innerHTML = '';
         const list = getSafeList(curStores().lumpStore, m);
         list.forEach(item => addLumpRow(item));
+        applyLumpPaymentFilter();
         updateAllMobileCompactRows();
     }
 
@@ -1907,8 +2687,8 @@ async function loadAllDataFromFirebase() {
         if(!tbody) return;
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td class="col-amount"><input type="number" class="amount-input side-inc-amount" value="${data.amount || ''}" placeholder="0" oninput="calcIncomeTotal()"></td>
-            <td class="col-memo"><input type="text" class="side-inc-memo" value="${data.memo || ''}" placeholder="부수입 출처/내용"></td>
+            <td class="col-amount"><input type="number" class="amount-input side-inc-amount" value="${escapeHtml(data.amount || '')}" placeholder="0" oninput="calcIncomeTotal()"></td>
+            <td class="col-memo"><input type="text" lang="ko" inputmode="text" autocapitalize="off" class="side-inc-memo ko-input" value="${escapeHtml(data.memo || '')}" placeholder="부수입 출처/내용"></td>
             <td class="col-action"><button class="btn-delete" onclick="deleteSideIncomeRow(this)">✕</button></td>
         `;
         tbody.appendChild(tr);
@@ -1917,6 +2697,7 @@ async function loadAllDataFromFirebase() {
 
     function deleteSideIncomeRow(btn) { btn.closest('tr').remove(); calcIncomeTotal(); }
 
+    /* 5. 수입합계 계산에서 부수입 제외 */
     function calcIncomeTotal() {
         const a1 = parseFloat(document.getElementById('inc-amt-1')?.value || 0) || 0;
         const a2 = parseFloat(document.getElementById('inc-amt-2')?.value || 0) || 0;
@@ -1925,16 +2706,13 @@ async function loadAllDataFromFirebase() {
             .reduce((sum, tr) => sum + (parseFloat(tr.querySelector('.side-inc-amount')?.value) || 0), 0);
 
         const inc3Input = document.getElementById('inc-amt-3');
-        let a3 = 0;
         if (sideTotalInDom > 0) {
-            a3 = sideTotalInDom;
             if (inc3Input) { inc3Input.value = sideTotalInDom; inc3Input.readOnly = true; inc3Input.style.backgroundColor = '#f3e8ff'; }
         } else {
             if (inc3Input) { inc3Input.readOnly = false; inc3Input.style.backgroundColor = 'transparent'; }
-            a3 = parseFloat(inc3Input?.value || 0) || 0;
         }
 
-        const sum = a1 + a2 + a3; 
+        const sum = a1 + a2; 
         const totalEl = document.getElementById('inc-amt-4');
         if (totalEl) totalEl.innerText = '₩' + sum.toLocaleString();
         calculateTotal();
@@ -1997,7 +2775,8 @@ async function loadAllDataFromFirebase() {
         if (sideList.length > 0) sideList.forEach(item => inc3 += parseFloat(item.amount) || 0);
         else inc3 = parseFloat(incData.amt3) || 0;
 
-        const incTotal = inc1 + inc2 + inc3; 
+        // 수입 합계에서 부수입 제외
+        const incTotal = inc1 + inc2; 
         const foodBudget = parseFloat(incData.foodBudget) || 0;
 
         let fixedTotal = 0;
@@ -2124,8 +2903,21 @@ async function loadAllDataFromFirebase() {
         let total = 0;
         if (currentActiveTab === 'tab-expense') {
             const rows = document.querySelectorAll('#expense-tbody tr');
-            rows.forEach(tr => { total += Math.max(0, parseFloat(tr.querySelector('.exp-amount')?.value || 0) || 0); });
-            document.getElementById('total-amount').innerText = '이달 지출 ₩' + total.toLocaleString();
+            let filteredTotal = 0;
+            rows.forEach(tr => {
+                const val = Math.max(0, parseFloat(tr.querySelector('.exp-amount')?.value || 0) || 0);
+                total += val;
+                if (!tr.classList.contains('filtered-hidden')) {
+                    filteredTotal += val;
+                }
+            });
+            if (currentExpensePaymentFilter !== 'all') {
+                const label = PAYMENT_LABELS[currentExpensePaymentFilter] || currentExpensePaymentFilter;
+                document.getElementById('total-amount').innerText = `${label} ₩${filteredTotal.toLocaleString()} (전체 ₩${total.toLocaleString()})`;
+                applyExpensePaymentFilter();
+            } else {
+                document.getElementById('total-amount').innerText = '이달 지출 ₩' + total.toLocaleString();
+            }
         } 
         else if (currentActiveTab === 'tab-fixed') {
             const genRows = document.querySelectorAll('#fixed-general-tbody tr');
@@ -2138,16 +2930,26 @@ async function loadAllDataFromFirebase() {
         }
         else if (currentActiveTab === 'tab-lump') {
             const rows = document.querySelectorAll('#lump-tbody tr');
-            rows.forEach(tr => { total += Math.max(0, parseFloat(tr.querySelector('.lump-amount')?.value || 0) || 0); });
-            document.getElementById('total-amount').innerText = '목돈 합계 ₩' + total.toLocaleString();
+            let filteredTotal = 0;
+            rows.forEach(tr => {
+                const val = Math.max(0, parseFloat(tr.querySelector('.lump-amount')?.value || 0) || 0);
+                total += val;
+                if (!tr.classList.contains('filtered-hidden')) {
+                    filteredTotal += val;
+                }
+            });
+            if (currentLumpPaymentFilter !== 'all') {
+                const label = PAYMENT_LABELS[currentLumpPaymentFilter] || currentLumpPaymentFilter;
+                document.getElementById('total-amount').innerText = `${label} ₩${filteredTotal.toLocaleString()} (전체 ₩${total.toLocaleString()})`;
+                applyLumpPaymentFilter();
+            } else {
+                document.getElementById('total-amount').innerText = '목돈 합계 ₩' + total.toLocaleString();
+            }
         }
         else if (currentActiveTab === 'tab-income') {
             const a1 = parseFloat(document.getElementById('inc-amt-1')?.value || 0) || 0;
             const a2 = parseFloat(document.getElementById('inc-amt-2')?.value || 0) || 0;
-            const sideTotalInDom = Array.from(document.querySelectorAll('#side-income-tbody tr'))
-                .reduce((sum, tr) => sum + (parseFloat(tr.querySelector('.side-inc-amount')?.value) || 0), 0);
-            const a3 = sideTotalInDom > 0 ? sideTotalInDom : (parseFloat(document.getElementById('inc-amt-3')?.value || 0) || 0);
-            const sum = a1 + a2 + a3;
+            const sum = a1 + a2;
             document.getElementById('total-amount').innerText = '수입 합계 ₩' + sum.toLocaleString();
         }
         else if (currentActiveTab === 'tab-stats') {
@@ -2423,7 +3225,7 @@ async function loadAllDataFromFirebase() {
 }
 </style>
 
-<div class="app-version-mark" aria-label="앱 버전">v31_20260830</div>
+<div class="app-version-mark" aria-label="앱 버전">v32_20261119</div>
 <button id="mobile-fixed-save-button" type="button" onclick="saveDataToCloud()" aria-label="전체저장">☁️ 전체저장</button>
 </body>
 </html>
